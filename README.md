@@ -1,6 +1,11 @@
 # faturapt
 
-Lê e valida o **código QR das faturas portuguesas** (o que a AT exige desde 2022, Portaria n.º 195/2020) e **NIFs**. Python puro, sem dependências, com tipos.
+[![CI](https://github.com/JoseFerrao20/faturapt/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseFerrao20/faturapt/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/faturapt)](https://pypi.org/project/faturapt/)
+[![Versões de Python](https://img.shields.io/pypi/pyversions/faturapt)](https://pypi.org/project/faturapt/)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](LICENSE)
+
+Lê e valida o **código QR das faturas portuguesas** (o que a AT exige desde 2022, Portaria n.º 195/2020) e **NIFs**. Python puro, sem dependências obrigatórias, com tipos.
 
 ```python
 >>> import faturapt
@@ -61,7 +66,7 @@ uv run pytest                             # testes, com cobertura mínima de 95 
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
 
-O CI corre o mesmo em Python 3.10 a 3.14. Para publicar uma versão: atualizar `__version__` e o `CHANGELOG.md`, e criar uma tag `vX.Y.Z`. O workflow `release.yml` publica no PyPI por *trusted publishing* (sem tokens guardados no GitHub).
+O CI corre o mesmo em Python 3.10 a 3.14. Para publicar uma versão: atualizar `__version__`, passar as entradas de "Por publicar" do `CHANGELOG.md` para a versão nova, com a data, e criar uma tag `vX.Y.Z`. O workflow `release.yml` publica no PyPI por *trusted publishing* (sem tokens guardados no GitHub).
 
 ## Licença
 
