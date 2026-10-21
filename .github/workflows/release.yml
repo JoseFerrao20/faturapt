@@ -1,0 +1,40 @@
+name: Release
+
+# Publica no PyPI quando se cria uma tag vX.Y.Z. Usa trusted publishing: no PyPI,
+# registar este repositório, o workflow release.yml e o ambiente "pypi".
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - name: A tag tem de ser igual à versão
+        run: |
+          version=$(uv run --no-project python -c "import re;print(re.search(r'__version__ = \"(.+)\"', open('src/faturapt/__init__.py').read())[1])")
+          test "v$version" = "$GITHUB_REF_NAME"
+      - run: uv sync --locked && uv run pytest
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
