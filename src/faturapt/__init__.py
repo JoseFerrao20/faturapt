@@ -2,6 +2,7 @@
 
 from .image import read_image
 from .nif import InvalidNIF, NifType, is_valid_nif, nif_type, normalize_nif
+from .pdf import read_pdf
 from .qr import DOCUMENT_TYPES, InvoiceQR, QRCodeError, TaxBreakdown, check, parse
 
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     "normalize_nif",
     "parse",
     "read_image",
+    "read_pdf",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

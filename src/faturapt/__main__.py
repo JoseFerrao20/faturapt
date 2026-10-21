@@ -1,5 +1,5 @@
-"""``faturapt "A:...*B:..."`` ou ``faturapt -i talao.jpg``: mostra a fatura em JSON e os
-problemas encontrados."""
+"""``faturapt "A:...*B:..."``, ``faturapt -i talao.jpg`` ou ``faturapt -i fatura.pdf``: mostra
+a fatura em JSON e os problemas encontrados."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from decimal import Decimal
 from typing import Any
 
 from .image import read_image
+from .pdf import read_pdf
 from .qr import QRCodeError, check, parse
 
 
@@ -28,13 +29,17 @@ def main(argv: list[str] | None = None) -> int:
     source = parser.add_mutually_exclusive_group()
     source.add_argument("qr", nargs="?", help="texto do código QR (por omissão, lido do stdin)")
     source.add_argument(
-        "-i", "--imagem", help="fotografia ou digitalização da fatura (precisa de faturapt[image])"
+        "-i",
+        "--imagem",
+        help="fotografia, digitalização ou PDF da fatura (precisa de faturapt[image] ou [pdf])",
     )
     args = parser.parse_args(argv)
 
     try:
         if args.imagem is not None:
-            invoice = read_image(args.imagem)
+            with open(args.imagem, "rb") as file:
+                is_pdf = file.read(5) == b"%PDF-"
+            invoice = read_pdf(args.imagem) if is_pdf else read_image(args.imagem)
         else:
             invoice = parse(args.qr if args.qr is not None else sys.stdin.read())
     except (QRCodeError, ImportError, OSError) as exc:
