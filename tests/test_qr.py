@@ -125,6 +125,31 @@ def test_check_order_and_decimals() -> None:
     ]
 
 
+@pytest.mark.parametrize(
+    ("old", "new", "problem"),
+    [
+        (
+            "H:JJ3XY2KD-1234",
+            "H:JJ3XY2KD-1235",
+            "O ATCUD (H) acaba em 1235, mas o documento (G) é o n.º 1234",
+        ),
+        ("H:JJ3XY2KD-1234", "H:JJ3-1234", "ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': JJ3-1234"),
+        ("G:FS 01/1234", "G:FT 01/1234", "O documento (G) é do tipo FT, mas o tipo (D) é FS"),
+        ("G:FS 01/1234", "G:FS-1234", "Documento (G) sem o formato 'TIPO SÉRIE/NÚMERO': FS-1234"),
+    ],
+)
+def test_check_atcud(old: str, new: str, problem: str) -> None:
+    assert check(parse(SIMPLE.replace(old, new))) == [problem]
+
+
+def test_atcud_zero_is_accepted() -> None:
+    assert check(parse(SIMPLE.replace("H:JJ3XY2KD-1234", "H:0"))) == []
+
+
+def test_atcud_leading_zeros_match() -> None:
+    assert check(parse(SIMPLE.replace("H:JJ3XY2KD-1234", "H:JJ3XY2KD-01234"))) == []
+
+
 def test_foreign_buyer_nif_not_checked() -> None:
     inv = parse(SIMPLE.replace("B:999999990*C:PT", "B:ES12345678Z*C:ES"))
     assert check(inv) == []
