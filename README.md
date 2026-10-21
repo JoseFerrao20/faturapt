@@ -20,7 +20,14 @@ True
 ## Instalar
 
 ```bash
-pip install faturapt
+pip install faturapt             # só texto: sem dependências
+pip install 'faturapt[image]'    # também lê fotografias (Pillow e zxing-cpp)
+```
+
+```python
+>>> fatura = faturapt.read_image("talao.jpg")    # doctest: +SKIP
+>>> fatura.total, faturapt.check(fatura)          # doctest: +SKIP
+(Decimal('12.30'), [])
 ```
 
 ## O que faz
@@ -29,11 +36,11 @@ pip install faturapt
 - **`check(fatura)`**: devolve os problemas de conteúdo: campos fora de ordem, valores sem duas casas decimais, NIFs inválidos, ATCUD que não acaba no número do documento (G) ou documento (G) de outro tipo que não o D, total de impostos (N) diferente de IVA + selo, ou total (O) diferente de bases + não sujeito + impostos.
 - **`fatura.to_text()`**: o caminho inverso, para quem gera faturas: escreve o texto do QR pela ordem da especificação, com duas casas decimais, e recusa valores acima do tamanho máximo. `parse(fatura.to_text())` devolve sempre a mesma fatura (os testes confirmam-no com o Hypothesis, em faturas geradas ao acaso).
 - **`is_valid_nif`, `nif_type`, `normalize_nif`**: dígito de controlo, prefixos e tipo de contribuinte (pessoa singular, coletiva, condomínio, …). Aceita espaços, pontos e o prefixo `PT`.
-- **Linha de comandos**: `faturapt "A:...*B:..."` (ou pelo stdin) mostra a fatura em JSON. Sai com 0 se estiver tudo certo, com 1 se houver problemas e com 2 se o texto não for um QR válido.
+- **`read_image(imagem)`**: encontra o QR da fatura numa fotografia ou digitalização (caminho, `bytes` ou imagem do Pillow) e lê-o com o `parse`. Respeita a orientação EXIF do telemóvel e, se houver outros QR na imagem (um site, uma promoção), escolhe o da fatura. Precisa de `faturapt[image]`.
+- **Linha de comandos**: `faturapt "A:...*B:..."` (ou pelo stdin) ou `faturapt -i talao.jpg` mostra a fatura em JSON. Sai com 0 se estiver tudo certo, com 1 se houver problemas e com 2 se o texto ou a imagem não tiverem um QR válido.
 
 As regras seguem as [especificações técnicas da AT](https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Novas_regras_faturacao/Documents/Especificacoes_Tecnicas_Codigo_QR.pdf) (versão 1.0, agosto de 2020), e os quatro exemplos do documento fazem parte dos testes. O `parse` recusa o que não se consegue ler (campos desconhecidos, repetidos ou acima do tamanho máximo, obrigatórios em falta); o `check` aponta o resto (campos fora de ordem, valores sem duas casas decimais, NIFs e contas).
 
-Ler a imagem do QR não faz parte da biblioteca: para isso, usar por exemplo o `zxing-cpp` ou o `pyzbar` e passar o texto ao `parse`.
 
 ## Campos do QR
 
@@ -49,7 +56,7 @@ Ler a imagem do QR não faz parte da biblioteca: para isso, usar por exemplo o `
 ## Desenvolvimento
 
 ```bash
-uv sync                                   # ambiente com as dependências de desenvolvimento
+uv sync --all-extras                      # ambiente com as dependências de desenvolvimento e de imagem
 uv run pytest                             # testes, com cobertura mínima de 95 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```

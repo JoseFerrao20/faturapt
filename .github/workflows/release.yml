@@ -19,7 +19,7 @@ jobs:
         run: |
           version=$(uv run --no-project python -c "import re;print(re.search(r'__version__ = \"(.+)\"', open('src/faturapt/__init__.py').read())[1])")
           test "v$version" = "$GITHUB_REF_NAME"
-      - run: uv sync --locked && uv run pytest
+      - run: uv sync --locked --all-extras && uv run pytest
       - run: uv build
       - uses: actions/upload-artifact@v4
         with:

@@ -1,11 +1,11 @@
 # faturapt
 
-Biblioteca Python (≥ 3.10, sem dependências) que lê e valida o código QR das faturas portuguesas (`src/faturapt/qr.py`) e NIFs (`src/faturapt/nif.py`), com a linha de comandos em `__main__.py`. Projeto de portfólio de José Ferrão.
+Biblioteca Python (≥ 3.10, sem dependências) que lê e valida o código QR das faturas portuguesas (`src/faturapt/qr.py`) e NIFs (`src/faturapt/nif.py`), com a linha de comandos em `__main__.py`. A leitura de imagens (`image.py`) usa as dependências opcionais `faturapt[image]` (Pillow e zxing-cpp), importadas só dentro do `read_image`: `import faturapt` tem de funcionar sem elas. Projeto de portfólio de José Ferrão.
 
 ## Comandos
 
 ```bash
-uv sync
+uv sync --all-extras
 uv run pytest                                  # inclui os exemplos do README (doctest) e cobertura ≥ 95 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv build
@@ -17,5 +17,6 @@ uv build
 - API pública só pelo que está em `faturapt.__all__`; mudar algo que já lá está é uma versão nova *major* (ou *minor* antes da 1.0) e entra no `CHANGELOG.md`.
 - `parse` só recusa o que está mal formado; problemas de conteúdo (NIFs, contas) vão para `check`, que devolve uma lista e nunca lança.
 - Valores em `Decimal`, nunca `float`.
+- Nos testes de imagem, os QR são gerados com o `segno` e não com o escritor do zxing, para o leitor não ser testado contra si próprio.
 - `to_text` e `parse` são inversos: `parse(fatura.to_text()) == fatura` (teste com o Hypothesis em `tests/test_build.py`). Um campo novo entra nos dois.
 - Cada alteração num PR a partir de um ramo, com o CI verde.

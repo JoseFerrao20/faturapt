@@ -1,4 +1,5 @@
-"""``faturapt "A:...*B:..."``: mostra a fatura em JSON e os problemas encontrados."""
+"""``faturapt "A:...*B:..."`` ou ``faturapt -i talao.jpg``: mostra a fatura em JSON e os
+problemas encontrados."""
 
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
+from .image import read_image
 from .qr import QRCodeError, check, parse
 
 
@@ -23,13 +25,19 @@ def _json(value: Any) -> Any:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="faturapt", description=__doc__)
-    parser.add_argument("qr", nargs="?", help="texto do código QR (por omissão, lido do stdin)")
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("qr", nargs="?", help="texto do código QR (por omissão, lido do stdin)")
+    source.add_argument(
+        "-i", "--imagem", help="fotografia ou digitalização da fatura (precisa de faturapt[image])"
+    )
     args = parser.parse_args(argv)
-    text = args.qr if args.qr is not None else sys.stdin.read()
 
     try:
-        invoice = parse(text)
-    except QRCodeError as exc:
+        if args.imagem is not None:
+            invoice = read_image(args.imagem)
+        else:
+            invoice = parse(args.qr if args.qr is not None else sys.stdin.read())
+    except (QRCodeError, ImportError, OSError) as exc:
         print(f"erro: {exc}", file=sys.stderr)
         return 2
 
