@@ -25,10 +25,12 @@ pip install faturapt
 
 ## O que faz
 
-- **`parse(texto)`**: converte o texto do QR num `InvoiceQR` (datas em `date`, valores em `Decimal`, IVA por espaço fiscal: continente, Açores e Madeira). Lança `QRCodeError`, com a mensagem em português, se faltarem campos obrigatórios, houver campos repetidos ou desconhecidos, ou valores mal formados.
-- **`check(fatura)`**: devolve os problemas de conteúdo: NIFs inválidos, total de impostos (N) diferente de IVA + selo, ou total (O) diferente de bases + não sujeito + impostos.
+- **`parse(texto)`**: converte o texto do QR num `InvoiceQR` (datas em `date`, valores em `Decimal`, IVA por espaço fiscal: continente, Açores e Madeira). Lança `QRCodeError`, com a mensagem em português, se faltarem campos obrigatórios, houver campos repetidos, desconhecidos ou acima do tamanho máximo, ou valores mal formados.
+- **`check(fatura)`**: devolve os problemas de conteúdo: campos fora de ordem, valores sem duas casas decimais, NIFs inválidos, total de impostos (N) diferente de IVA + selo, ou total (O) diferente de bases + não sujeito + impostos.
 - **`is_valid_nif`, `nif_type`, `normalize_nif`**: dígito de controlo, prefixos e tipo de contribuinte (pessoa singular, coletiva, condomínio, …). Aceita espaços, pontos e o prefixo `PT`.
 - **Linha de comandos**: `faturapt "A:...*B:..."` (ou pelo stdin) mostra a fatura em JSON. Sai com 0 se estiver tudo certo, com 1 se houver problemas e com 2 se o texto não for um QR válido.
+
+As regras seguem as [especificações técnicas da AT](https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Novas_regras_faturacao/Documents/Especificacoes_Tecnicas_Codigo_QR.pdf) (versão 1.0, agosto de 2020), e os quatro exemplos do documento fazem parte dos testes. O `parse` recusa o que não se consegue ler (campos desconhecidos, repetidos ou acima do tamanho máximo, obrigatórios em falta); o `check` aponta o resto (campos fora de ordem, valores sem duas casas decimais, NIFs e contas).
 
 Ler a imagem do QR não faz parte da biblioteca: para isso, usar por exemplo o `zxing-cpp` ou o `pyzbar` e passar o texto ao `parse`.
 

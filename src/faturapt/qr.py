@@ -1,6 +1,7 @@
 """Leitura do código QR das faturas portuguesas.
 
-O formato vem da Portaria n.º 195/2020 e das especificações técnicas da AT:
+O formato vem da Portaria n.º 195/2020 e das especificações técnicas da AT
+("Código de Barras Bidimensional - Código QR", versão 1.0, agosto de 2020):
 campos ``CHAVE:valor`` separados por ``*``, por exemplo
 ``A:123456789*B:999999990*C:PT*D:FT*...``.
 """
@@ -52,8 +53,15 @@ DOCUMENT_TYPES: dict[str, str] = {
 }
 
 _REQUIRED = ("A", "B", "C", "D", "E", "F", "G", "H", "I1", "N", "O", "Q", "R")
-_SINGLE = {"A", "B", "C", "D", "E", "F", "G", "H", "L", "M", "N", "O", "P", "Q", "R", "S"}
-_TAX_KEY = re.compile(r"^([IJK])([1-8])$")
+_TAX_KEYS = [f"{letter}{i}" for letter in "IJK" for i in range(1, 9)]
+_MONETARY = {k for k in _TAX_KEYS if not k.endswith("1")} | {"L", "M", "N", "O", "P"}
+# Tamanho máximo de cada campo, pela ordem em que têm de aparecer (ponto 4 da especificação).
+_MAX_LENGTH: dict[str, int] = {
+    **{"A": 9, "B": 30, "C": 12, "D": 2, "E": 1, "F": 8, "G": 60, "H": 70},
+    **{k: 16 if k in _MONETARY else 5 for k in _TAX_KEYS},
+    **{"L": 16, "M": 16, "N": 16, "O": 16, "P": 16, "Q": 4, "R": 4, "S": 65},
+}
+_ORDER = {key: i for i, key in enumerate(_MAX_LENGTH)}
 _AMOUNT = re.compile(r"^-?\d+(\.\d{1,2})?$")
 
 
@@ -125,8 +133,12 @@ def _split(text: str) -> dict[str, str]:
             raise QRCodeError(f"Campo sem o formato CHAVE:valor: {part!r}")
         if key in fields:
             raise QRCodeError(f"Campo repetido: {key}")
-        if key not in _SINGLE and not _TAX_KEY.match(key):
+        if key not in _MAX_LENGTH:
             raise QRCodeError(f"Campo desconhecido: {key}")
+        if len(value) > _MAX_LENGTH[key]:
+            raise QRCodeError(
+                f"O campo {key} passa o tamanho máximo ({_MAX_LENGTH[key]} caracteres): {value!r}"
+            )
         fields[key] = value
     return fields
 
@@ -173,8 +185,10 @@ def _taxes(fields: dict[str, str]) -> tuple[TaxBreakdown, ...]:
 def parse(text: str) -> InvoiceQR:
     """Lê o texto de um código QR de fatura.
 
-    Lança :class:`QRCodeError` se o texto estiver mal formado ou faltarem campos
-    obrigatórios. Não confirma NIFs nem contas: para isso, usar :func:`check`.
+    Lança :class:`QRCodeError` se o texto estiver mal formado (campos desconhecidos,
+    repetidos ou acima do tamanho máximo) ou faltarem campos obrigatórios. Aceita
+    valores com menos de duas casas decimais e campos fora de ordem, e não confirma
+    NIFs nem contas: isso fica para :func:`check`.
     """
     fields = _split(text)
     missing = [k for k in _REQUIRED if k not in fields]
@@ -217,10 +231,19 @@ def parse(text: str) -> InvoiceQR:
 def check(invoice: InvoiceQR) -> list[str]:
     """Problemas de conteúdo numa fatura já lida; lista vazia se estiver tudo certo.
 
-    Confirma os NIFs e as contas: o total de impostos (N) é o IVA mais o selo, e o
-    total (O) é a soma das bases, do não sujeito (L) e dos impostos (N).
+    Confirma a ordem dos campos, as duas casas decimais dos valores, os NIFs e as
+    contas: o total de impostos (N) é o IVA mais o selo, e o total (O) é a soma das
+    bases, do não sujeito (L) e dos impostos (N).
     """
     problems = []
+    keys = list(invoice.fields)
+    if keys != sorted(keys, key=_ORDER.__getitem__):
+        problems.append("Os campos não estão pela ordem da especificação")
+    problems += [
+        f"O campo {key} devia ter duas casas decimais: {value}"
+        for key, value in invoice.fields.items()
+        if key in _MONETARY and not re.fullmatch(r"-?\d+\.\d\d", value)
+    ]
     if not is_valid_nif(invoice.issuer_nif):
         problems.append(f"NIF do emitente inválido: {invoice.issuer_nif}")
     if invoice.buyer_country == "PT" and not is_valid_nif(invoice.buyer_nif):

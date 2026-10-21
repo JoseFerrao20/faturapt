@@ -6,7 +6,7 @@ import pytest
 from faturapt import QRCodeError, check, parse
 from faturapt.__main__ import main
 
-# Exemplo das especificações técnicas da AT, com os três espaços fiscais.
+# Os quatro exemplos das especificações técnicas da AT (versão 1.0, ponto 5).
 FULL = (
     "A:123456789*B:999999990*C:PT*D:FT*E:N*F:20191231*G:FT AB2019/0035*H:CSDF7T5H-0035"
     "*I1:PT*I2:12000.00*I3:15000.00*I4:900.00*I5:50000.00*I6:6500.00*I7:80000.00*I8:18400.00"
@@ -14,6 +14,20 @@ FULL = (
     "*K1:PT-MA*K2:5000.00*K3:12500.00*K4:625.00*K5:25000.00*K6:3000.00*K7:40000.00*K8:8800.00"
     "*L:100.00*M:25.00*N:64000.02*O:513600.58*P:100.00*Q:kLp0*R:9999"
     "*S:TB;PT00000000000000000000000;513500.58"
+)
+
+AT_SIMPLIFIED = (
+    "A:123456789*B:999999990*C:PT*D:FS*E:N*F:20190812*G:FS CDVF/12345*H:CDF7T5HD-12345"
+    "*I1:PT*I7:0.65*I8:0.15*N:0.15*O:0.80*Q:YhGV*R:9999*S:NU;0.80"
+)
+AT_PRO_FORMA = (
+    "A:500000000*B:123456789*C:PT*D:PF*E:N*F:20190123*G:PF G2019CB/145789*H:HB6FT7RV-145789"
+    "*I1:PT*I2:12345.34*I3:12532.65*I4:751.96*I5:52789.00*I6:6862.57*I7:32425.69*I8:7457.91"
+    "*N:15072.44*O:125165.12*Q:r/fY*R:9999"
+)
+AT_TRANSPORT = (
+    "A:500000000*B:123456789*C:PT*D:GT*E:N*F:20190720*G:GT G234CB/50987*H:GTVX4Y8B-50987"
+    "*I1:0*N:0.00*O:0.00*Q:5uIg*R:9999"
 )
 
 # Um talão de supermercado: só taxa normal, consumidor final.
@@ -36,6 +50,11 @@ def test_parse_full() -> None:
     assert inv.withholding == Decimal("100.00")
     assert inv.other_info == "TB;PT00000000000000000000000;513500.58"
     assert check(inv) == []
+
+
+@pytest.mark.parametrize("text", [FULL, AT_SIMPLIFIED, AT_PRO_FORMA, AT_TRANSPORT])
+def test_at_examples_are_valid(text: str) -> None:
+    assert check(parse(text)) == []
 
 
 def test_parse_simple() -> None:
@@ -70,6 +89,9 @@ def test_unknown_document_type_is_kept() -> None:
         (SIMPLE.replace("F:20261015", "F:20261332"), "Data inválida"),
         (SIMPLE.replace("O:12.30", "O:12,30"), "campo O"),
         (SIMPLE.replace("Q:Ab1z", "Q:Ab1"), "4 caracteres"),
+        (SIMPLE.replace("Q:Ab1z", "Q:Ab1z9"), "tamanho máximo \\(4"),
+        (SIMPLE.replace("A:500000000", "A:PT500000000"), "campo A passa"),
+        (SIMPLE + "*S:" + "x" * 66, "campo S passa"),
         (SIMPLE.replace("*I1:PT", ""), "Faltam campos obrigatórios: I1"),
         (SIMPLE.replace("I1:PT", "I1:0"), "I1 é 0"),
         (SIMPLE + "*J7:1.00", "sem o espaço fiscal J1"),
@@ -93,6 +115,14 @@ def test_check_finds_problems() -> None:
 def test_check_invalid_buyer_nif() -> None:
     problems = check(parse(SIMPLE.replace("B:999999990", "B:999999991")))
     assert problems == ["NIF do adquirente inválido: 999999991"]
+
+
+def test_check_order_and_decimals() -> None:
+    text = SIMPLE.replace("*Q:Ab1z*R:1234", "*R:1234*Q:Ab1z").replace("O:12.30", "O:12.3")
+    assert check(parse(text)) == [
+        "Os campos não estão pela ordem da especificação",
+        "O campo O devia ter duas casas decimais: 12.3",
+    ]
 
 
 def test_foreign_buyer_nif_not_checked() -> None:
