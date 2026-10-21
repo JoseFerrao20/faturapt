@@ -63,6 +63,19 @@ _MAX_LENGTH: dict[str, int] = {
 }
 _ORDER = {key: i for i, key in enumerate(_MAX_LENGTH)}
 _AMOUNT = re.compile(r"^-?\d+(\.\d{1,2})?$")
+# ATCUD: código de validação da série (8 ou mais caracteres), hífen e número do documento.
+_ATCUD = re.compile(r"^[A-Z0-9]{8,}-(\d+)$")
+# Identificação do documento no SAF-T(PT): tipo, espaço, série, barra e número.
+_DOCUMENT_ID = re.compile(r"^(\S+) \S+/(\d+)$")
+_TAX_FIELDS = (
+    "exempt_base",
+    "reduced_base",
+    "reduced_vat",
+    "intermediate_base",
+    "intermediate_vat",
+    "normal_base",
+    "normal_vat",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,6 +137,52 @@ class InvoiceQR:
         """``True`` se a fatura não tem NIF do adquirente (consumidor final)."""
         return self.buyer_nif == "999999990"
 
+    def to_text(self) -> str:
+        """O texto do código QR, pela ordem e com o formato da especificação.
+
+        Valores ``None`` não entram (os campos opcionais sem informação não se criam), e
+        sem espaços fiscais escreve ``I1:0``. Lança :class:`QRCodeError` se algum valor
+        passar o tamanho máximo ou tiver um ``*``, ou se o último acabar em espaço.
+        ``parse(fatura.to_text())`` devolve uma fatura igual a esta.
+        """
+        if len(self.taxes) > 3:
+            raise QRCodeError("Só há três espaços fiscais (campos I, J e K)")
+        fields: dict[str, str | Decimal | None] = {
+            "A": self.issuer_nif,
+            "B": self.buyer_nif,
+            "C": self.buyer_country,
+            "D": self.document_type,
+            "E": self.document_status,
+            "F": self.document_date.strftime("%Y%m%d"),
+            "G": self.document_id,
+            "H": self.atcud,
+        }
+        if not self.taxes:
+            fields["I1"] = "0"
+        for letter, tax in zip("IJK", self.taxes, strict=False):
+            fields[f"{letter}1"] = tax.fiscal_space
+            for i, name in enumerate(_TAX_FIELDS, start=2):
+                fields[f"{letter}{i}"] = getattr(tax, name)
+        fields |= {
+            "L": self.non_taxable,
+            "M": self.stamp_duty,
+            "N": self.total_taxes,
+            "O": self.total,
+            "P": self.withholding,
+            "Q": self.hash_chars,
+            "R": self.certificate,
+            "S": self.other_info,
+        }
+        text = "*".join(
+            f"{key}:{value:.2f}" if isinstance(value, Decimal) else f"{key}:{value}"
+            for key, value in fields.items()
+            if value is not None
+        )
+        if text != text.strip():  # a leitura tira os espaços das pontas
+            raise QRCodeError("O último campo não pode acabar em espaço")
+        _split(text)  # mesmas regras de tamanho e formato que a leitura
+        return text
+
 
 def _split(text: str) -> dict[str, str]:
     fields: dict[str, str] = {}
@@ -168,16 +227,9 @@ def _taxes(fields: dict[str, str]) -> tuple[TaxBreakdown, ...]:
             if others:
                 raise QRCodeError(f"{letter}1 é 0 (sem IVA), mas há outros campos {letter}")
             continue
-        names = (
-            "exempt_base",
-            "reduced_base",
-            "reduced_vat",
-            "intermediate_base",
-            "intermediate_vat",
-            "normal_base",
-            "normal_vat",
-        )
-        values = {name: _amount(fields, f"{letter}{i}") for i, name in enumerate(names, start=2)}
+        values = {
+            name: _amount(fields, f"{letter}{i}") for i, name in enumerate(_TAX_FIELDS, start=2)
+        }
         result.append(TaxBreakdown(fiscal_space=space, **values))
     return tuple(result)
 
@@ -231,9 +283,10 @@ def parse(text: str) -> InvoiceQR:
 def check(invoice: InvoiceQR) -> list[str]:
     """Problemas de conteúdo numa fatura já lida; lista vazia se estiver tudo certo.
 
-    Confirma a ordem dos campos, as duas casas decimais dos valores, os NIFs e as
-    contas: o total de impostos (N) é o IVA mais o selo, e o total (O) é a soma das
-    bases, do não sujeito (L) e dos impostos (N).
+    Confirma a ordem dos campos, as duas casas decimais dos valores, os NIFs, o ATCUD
+    (o número no fim tem de ser o do documento, em G) e as contas: o total de
+    impostos (N) é o IVA mais o selo, e o total (O) é a soma das bases, do não
+    sujeito (L) e dos impostos (N).
     """
     problems = []
     keys = list(invoice.fields)
@@ -249,6 +302,8 @@ def check(invoice: InvoiceQR) -> list[str]:
     if invoice.buyer_country == "PT" and not is_valid_nif(invoice.buyer_nif):
         problems.append(f"NIF do adquirente inválido: {invoice.buyer_nif}")
 
+    problems += _check_atcud(invoice)
+
     vat = sum((t.total_vat for t in invoice.taxes), Decimal(0))
     expected_taxes = vat + (invoice.stamp_duty or 0)
     if expected_taxes != invoice.total_taxes:
@@ -261,5 +316,26 @@ def check(invoice: InvoiceQR) -> list[str]:
     if expected_total != invoice.total:
         problems.append(
             f"Total (O) é {invoice.total}, mas bases + não sujeito + impostos dá {expected_total}"
+        )
+    return problems
+
+
+def _check_atcud(invoice: InvoiceQR) -> list[str]:
+    document = _DOCUMENT_ID.match(invoice.document_id)
+    if document is None:
+        return [f"Documento (G) sem o formato 'TIPO SÉRIE/NÚMERO': {invoice.document_id}"]
+    problems = []
+    if document[1] != invoice.document_type:
+        problems.append(
+            f"O documento (G) é do tipo {document[1]}, mas o tipo (D) é {invoice.document_type}"
+        )
+    if invoice.atcud == "0":  # sem ATCUD, como era permitido antes de ser obrigatório
+        return problems
+    atcud = _ATCUD.match(invoice.atcud)
+    if atcud is None:
+        problems.append(f"ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': {invoice.atcud}")
+    elif int(atcud[1]) != int(document[2]):
+        problems.append(
+            f"O ATCUD (H) acaba em {atcud[1]}, mas o documento (G) é o n.º {document[2]}"
         )
     return problems

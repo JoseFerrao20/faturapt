@@ -17,4 +17,5 @@ uv build
 - API pública só pelo que está em `faturapt.__all__`; mudar algo que já lá está é uma versão nova *major* (ou *minor* antes da 1.0) e entra no `CHANGELOG.md`.
 - `parse` só recusa o que está mal formado; problemas de conteúdo (NIFs, contas) vão para `check`, que devolve uma lista e nunca lança.
 - Valores em `Decimal`, nunca `float`.
+- `to_text` e `parse` são inversos: `parse(fatura.to_text()) == fatura` (teste com o Hypothesis em `tests/test_build.py`). Um campo novo entra nos dois.
 - Cada alteração num PR a partir de um ramo, com o CI verde.

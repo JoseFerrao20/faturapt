@@ -26,7 +26,8 @@ pip install faturapt
 ## O que faz
 
 - **`parse(texto)`**: converte o texto do QR num `InvoiceQR` (datas em `date`, valores em `Decimal`, IVA por espaço fiscal: continente, Açores e Madeira). Lança `QRCodeError`, com a mensagem em português, se faltarem campos obrigatórios, houver campos repetidos, desconhecidos ou acima do tamanho máximo, ou valores mal formados.
-- **`check(fatura)`**: devolve os problemas de conteúdo: campos fora de ordem, valores sem duas casas decimais, NIFs inválidos, total de impostos (N) diferente de IVA + selo, ou total (O) diferente de bases + não sujeito + impostos.
+- **`check(fatura)`**: devolve os problemas de conteúdo: campos fora de ordem, valores sem duas casas decimais, NIFs inválidos, ATCUD que não acaba no número do documento (G) ou documento (G) de outro tipo que não o D, total de impostos (N) diferente de IVA + selo, ou total (O) diferente de bases + não sujeito + impostos.
+- **`fatura.to_text()`**: o caminho inverso, para quem gera faturas: escreve o texto do QR pela ordem da especificação, com duas casas decimais, e recusa valores acima do tamanho máximo. `parse(fatura.to_text())` devolve sempre a mesma fatura (os testes confirmam-no com o Hypothesis, em faturas geradas ao acaso).
 - **`is_valid_nif`, `nif_type`, `normalize_nif`**: dígito de controlo, prefixos e tipo de contribuinte (pessoa singular, coletiva, condomínio, …). Aceita espaços, pontos e o prefixo `PT`.
 - **Linha de comandos**: `faturapt "A:...*B:..."` (ou pelo stdin) mostra a fatura em JSON. Sai com 0 se estiver tudo certo, com 1 se houver problemas e com 2 se o texto não for um QR válido.
 
