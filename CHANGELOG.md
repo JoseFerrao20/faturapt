@@ -4,6 +4,13 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+## [0.2.0] - 2026-10-21
+
+### Adicionado
+
+- `read_pdf`, para ler o QR da fatura num PDF, mesmo quando está desenhado (vetorial), como fazem os programas de faturação. Procura na primeira e na última página. Dependências opcionais `faturapt[pdf]` (pypdfium2, Pillow e zxing-cpp).
+- A linha de comandos lê PDFs com `-i`, reconhecidos pelo conteúdo.
+
 ## [0.1.0] - 2026-10-21
 
 Primeira versão.
@@ -17,5 +24,6 @@ Primeira versão.
 - Linha de comandos `faturapt`, a partir do texto ou de uma imagem (`-i`/`--imagem`).
 - Regras conferidas com as especificações técnicas da AT (versão 1.0, agosto de 2020), com os quatro exemplos do documento nos testes.
 
-[Por publicar]: https://github.com/JoseFerrao20/faturapt/compare/v0.1.0...HEAD
+[Por publicar]: https://github.com/JoseFerrao20/faturapt/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/JoseFerrao20/faturapt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/JoseFerrao20/faturapt/releases/tag/v0.1.0

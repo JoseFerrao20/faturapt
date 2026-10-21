@@ -41,6 +41,11 @@ image = [
     "pillow>=10",
     "zxing-cpp>=3.0",
 ]
+pdf = [
+    "pillow>=10",
+    "pypdfium2>=4.30",
+    "zxing-cpp>=3.0",
+]
 
 [dependency-groups]
 dev = [
@@ -50,6 +55,7 @@ dev = [
     "mypy>=1.11",
     "hypothesis>=6.100",
     "segno>=1.6.6",
+    "reportlab>=5.0.1",
 ]
 
 [tool.hatch.version]
@@ -71,6 +77,10 @@ known-local-folder = ["test_qr"]  # os testes importam os exemplos uns dos outro
 [tool.mypy]
 strict = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["pypdfium2", "reportlab.*"]  # sem tipos (o reportlab só nos testes)
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--doctest-glob=README.md --cov=faturapt --cov-report=term-missing --cov-fail-under=95"

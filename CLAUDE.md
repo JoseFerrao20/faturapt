@@ -1,6 +1,6 @@
 # faturapt
 
-Biblioteca Python (≥ 3.10, sem dependências) que lê e valida o código QR das faturas portuguesas (`src/faturapt/qr.py`) e NIFs (`src/faturapt/nif.py`), com a linha de comandos em `__main__.py`. A leitura de imagens (`image.py`) usa as dependências opcionais `faturapt[image]` (Pillow e zxing-cpp), importadas só dentro do `read_image`: `import faturapt` tem de funcionar sem elas. Projeto de portfólio de José Ferrão.
+Biblioteca Python (≥ 3.10, sem dependências) que lê e valida o código QR das faturas portuguesas (`src/faturapt/qr.py`) e NIFs (`src/faturapt/nif.py`), com a linha de comandos em `__main__.py`. A leitura de imagens (`image.py`) usa as dependências opcionais `faturapt[image]` (Pillow e zxing-cpp), importadas só dentro do `read_image`: `import faturapt` tem de funcionar sem elas. O mesmo para os PDFs (`pdf.py`, `faturapt[pdf]`, com o pypdfium2): o PDFium não aguenta duas threads ao mesmo tempo, por isso o `read_pdf` usa um lock enquanto desenha as páginas. Projeto de portfólio de José Ferrão.
 
 ## Comandos
 
