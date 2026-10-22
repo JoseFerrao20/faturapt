@@ -21,6 +21,11 @@ True
 []
 >>> faturapt.nif_type("PT 123 456 789")
 <NifType.INDIVIDUAL: 'pessoa singular'>
+>>> dados = inv.to_dict()    # pronto para JSON: valores em texto, datas em ISO
+>>> dados["total"], dados["document_date"], dados["taxes"][0]["normal_vat"]
+('12.30', '2026-10-15', '2.30')
+>>> faturapt.InvoiceQR.from_dict(dados) == inv
+True
 
 ```
 
@@ -45,10 +50,11 @@ pip install 'faturapt[pdf]'      # fotografias e PDFs (também o pypdfium2)
 - **`parse(texto)`**: converte o texto do QR num `InvoiceQR` (datas em `date`, valores em `Decimal`, IVA por espaço fiscal: continente, Açores e Madeira). Lança `QRCodeError`, com a mensagem em português, se faltarem campos obrigatórios, houver campos repetidos, desconhecidos ou acima do tamanho máximo, ou valores mal formados.
 - **`check(fatura)`**: devolve os problemas de conteúdo: campos fora de ordem, valores sem duas casas decimais, NIFs inválidos, ATCUD que não acaba no número do documento (G) ou documento (G) de outro tipo que não o D, total de impostos (N) diferente de IVA + selo, ou total (O) diferente de bases + não sujeito + impostos.
 - **`fatura.to_text()`**: o caminho inverso, para quem gera faturas: escreve o texto do QR pela ordem da especificação, com duas casas decimais, e recusa valores acima do tamanho máximo. `parse(fatura.to_text())` devolve sempre a mesma fatura (os testes confirmam-no com o Hypothesis, em faturas geradas ao acaso).
+- **`fatura.to_dict()` e `InvoiceQR.from_dict(dados)`**: a fatura num dicionário pronto para JSON, para a guardar numa base de dados ou a passar a um programa noutra linguagem. Os valores vêm em texto com duas casas (`"12.30"`, nunca `float`, para não perderem cêntimos), as datas em ISO e o IVA numa lista, um dicionário por espaço fiscal. O `from_dict` faz o caminho inverso e passa pelas mesmas regras do `parse`. As duas também se confirmam com o Hypothesis, através do JSON.
 - **`is_valid_nif`, `nif_type`, `normalize_nif`**: dígito de controlo, prefixos e tipo de contribuinte (pessoa singular, coletiva, condomínio, …). Aceita espaços, pontos e o prefixo `PT`.
 - **`read_image(imagem)`**: encontra o QR da fatura numa fotografia ou digitalização (caminho, `bytes` ou imagem do Pillow) e lê-o com o `parse`. Respeita a orientação EXIF do telemóvel e, se houver outros QR na imagem (um site, uma promoção), escolhe o da fatura. Precisa de `faturapt[image]`.
 - **`read_pdf(pdf)`**: o mesmo para a fatura em PDF que chega por email (caminho ou `bytes`). Os programas de faturação desenham o QR no PDF em vez de o pôr como imagem, por isso a página é desenhada a 300 dpi antes de se procurar o QR, na primeira e na última página (onde a especificação o deixa pôr). Pode ser chamada por várias threads ao mesmo tempo. Precisa de `faturapt[pdf]`.
-- **Linha de comandos**: `faturapt "A:...*B:..."` (ou pelo stdin) ou `faturapt -i talao.jpg` (ou `-i fatura.pdf`: o PDF é reconhecido pelo conteúdo) mostra a fatura em JSON. Sai com 0 se estiver tudo certo, com 1 se houver problemas e com 2 se o texto, a imagem ou o PDF não tiverem um QR válido.
+- **Linha de comandos**: `faturapt "A:...*B:..."` (ou pelo stdin) ou `faturapt -i talao.jpg` (ou `-i fatura.pdf`: o PDF é reconhecido pelo conteúdo) mostra a fatura em JSON (o `to_dict()`, mais a lista `problems` do `check`), para usar noutros programas. Sai com 0 se estiver tudo certo, com 1 se houver problemas e com 2 se o texto, a imagem ou o PDF não tiverem um QR válido.
 
 As regras seguem as [especificações técnicas da AT](https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Novas_regras_faturacao/Documents/Especificacoes_Tecnicas_Codigo_QR.pdf) (versão 1.0, agosto de 2020), e os quatro exemplos do documento fazem parte dos testes. O `parse` recusa o que não se consegue ler (campos desconhecidos, repetidos ou acima do tamanho máximo, obrigatórios em falta); o `check` aponta o resto (campos fora de ordem, valores sem duas casas decimais, NIFs e contas).
 

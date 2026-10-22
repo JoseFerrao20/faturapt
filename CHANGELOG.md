@@ -4,6 +4,14 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Adicionado
+
+- `InvoiceQR.to_dict()` e `InvoiceQR.from_dict()`: a fatura num dicionário pronto para JSON (valores em texto com duas casas, datas em ISO, IVA numa lista) e o caminho inverso, que passa pelas mesmas regras do `parse`. Testes de ida e volta com o Hypothesis, através do JSON.
+
+### Alterado
+
+- A linha de comandos escreve o `to_dict()` mais a lista `problems`: os valores passam a ter sempre duas casas (`"10.00"` em vez de `"10"`), e entra o `is_final_consumer`.
+
 ## [0.2.0] - 2026-10-22
 
 ### Adicionado
