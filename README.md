@@ -7,6 +7,8 @@
 
 Lê e valida o **código QR das faturas portuguesas** (o que a AT exige desde 2022, Portaria n.º 195/2020) e **NIFs**. Python puro, sem dependências obrigatórias, com tipos.
 
+**[Experimentar no browser](https://joseferrao20.github.io/faturapt/)**: cola o texto de um QR ou escolhe uma fotografia da fatura. A página corre o próprio faturapt com o [Pyodide](https://pyodide.org) e nada sai do teu computador.
+
 ```python
 >>> import faturapt
 >>> inv = faturapt.parse("A:500000000*B:999999990*C:PT*D:FS*E:N*F:20261015*G:FS 01/1234"
@@ -69,6 +71,8 @@ uv sync --all-extras                      # ambiente com as dependências de des
 uv run pytest                             # testes, com cobertura mínima de 95 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
+
+A página de demonstração está em `site/`: o `demo.py` é a ponte para o faturapt (testada em `tests/test_site.py`) e o workflow `pages.yml` publica-a no GitHub Pages a cada push na `main`, com o wheel acabado de construir.
 
 O CI corre o mesmo em Python 3.10 a 3.14. Para publicar uma versão: atualizar `__version__`, passar as entradas de "Por publicar" do `CHANGELOG.md` para a versão nova, com a data, e criar uma tag `vX.Y.Z`. O workflow `release.yml` publica no PyPI por *trusted publishing* (sem tokens guardados no GitHub).
 

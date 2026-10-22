@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>faturapt · ler o QR de uma fatura</title>
+    <meta
+      name="description"
+      content="Lê e valida o código QR das faturas portuguesas no browser, com o faturapt (Python). Nada sai do teu computador."
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>faturapt</h1>
+      <p class="lead">
+        Lê e valida o <strong>código QR das faturas portuguesas</strong>. Tudo corre no teu
+        browser, com a própria biblioteca em Python: nada sai do teu computador.
+      </p>
+      <p id="status" class="status" role="status" aria-live="polite">
+        A carregar o Python no browser (só da primeira vez demora uns segundos)…
+      </p>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="input-title">
+        <h2 id="input-title">A fatura</h2>
+
+        <form id="text-form">
+          <label for="qr-text">Texto do código QR</label>
+          <textarea
+            id="qr-text"
+            rows="5"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="A:123456789*B:999999990*C:PT*D:FS*…"
+          ></textarea>
+          <div class="actions">
+            <button type="submit" id="read-text" disabled>Ler o texto</button>
+          </div>
+        </form>
+
+        <div class="examples">
+          <p id="examples-label">Ou experimenta um exemplo:</p>
+          <div class="chips" role="group" aria-labelledby="examples-label" id="examples"></div>
+        </div>
+
+        <div class="photo">
+          <label for="qr-photo" class="file-label">Ou escolhe uma fotografia da fatura</label>
+          <input id="qr-photo" type="file" accept="image/*" disabled />
+          <p class="hint">No telemóvel, podes tirar a fotografia na hora. O QR tem de se ver inteiro.</p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="result-title" id="result-card" hidden>
+        <h2 id="result-title">Resultado</h2>
+        <div id="verdict" class="verdict"></div>
+        <div id="details"></div>
+        <details class="raw">
+          <summary>Ver em JSON</summary>
+          <pre id="raw-json"></pre>
+        </details>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <p>
+        <a href="https://github.com/JoseFerrao20/faturapt">Código no GitHub</a> ·
+        <a href="https://pypi.org/project/faturapt/">PyPI</a> ·
+        <code>pip install faturapt</code>
+      </p>
+      <p class="hint">
+        As regras seguem as especificações técnicas da AT (Portaria n.º 195/2020). Os exemplos
+        são os do próprio documento da AT. <span id="version"></span>
+      </p>
+    </footer>
+  </body>
+</html>
