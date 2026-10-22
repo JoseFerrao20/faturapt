@@ -4,7 +4,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
-## [0.2.0] - 2026-10-21
+## [0.2.0] - 2026-10-22
 
 ### Adicionado
 
