@@ -7,7 +7,7 @@
 
 Lê e valida o **código QR das faturas portuguesas** (o que a AT exige desde 2022, Portaria n.º 195/2020) e **NIFs**. Python puro, sem dependências obrigatórias, com tipos.
 
-**[Experimentar no browser](https://joseferrao20.github.io/faturapt/)**: cola o texto de um QR ou escolhe uma fotografia da fatura. A página corre o próprio faturapt com o [Pyodide](https://pyodide.org) e nada sai do teu computador.
+**[Experimentar no browser](https://joseferrao20.github.io/faturapt/)**: cola o texto de um QR, aponta a câmara do telemóvel à fatura ou escolhe uma fotografia. A página corre o próprio faturapt com o [Pyodide](https://pyodide.org) e nada sai do teu computador.
 
 ```python
 >>> import faturapt

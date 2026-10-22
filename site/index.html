@@ -47,7 +47,18 @@
         </div>
 
         <div class="photo">
-          <label for="qr-photo" class="file-label">Ou escolhe uma fotografia da fatura</label>
+          <p class="photo-title">Ou lê o QR da fatura em papel</p>
+          <div class="camera">
+            <button type="button" id="camera-start" class="secondary" disabled>
+              Ler com a câmara
+            </button>
+            <p class="hint" id="camera-hint">Aponta ao QR: a leitura é automática.</p>
+            <div id="camera-panel" class="camera-panel" hidden>
+              <video id="camera-video" playsinline muted aria-label="Imagem da câmara"></video>
+              <button type="button" id="camera-stop" class="secondary">Parar a câmara</button>
+            </div>
+          </div>
+          <label for="qr-photo" class="file-label">Ou escolhe uma fotografia</label>
           <input id="qr-photo" type="file" accept="image/*" disabled />
           <p class="hint">No telemóvel, podes tirar a fotografia na hora. O QR tem de se ver inteiro.</p>
         </div>

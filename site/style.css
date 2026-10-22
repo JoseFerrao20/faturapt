@@ -177,6 +177,41 @@ input:disabled {
   border-top: 1px solid var(--border);
 }
 
+.photo-title {
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.camera {
+  margin-bottom: 16px;
+}
+
+.camera .hint {
+  margin: 6px 0 0;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  padding: 6px 14px;
+  font-weight: 600;
+}
+
+.camera-panel {
+  margin-top: 12px;
+}
+
+.camera-panel video {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  object-fit: cover;
+  background: #000;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
 .photo input {
   max-width: 100%;
 }
