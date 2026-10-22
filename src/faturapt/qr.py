@@ -9,9 +9,11 @@ campos ``CHAVE:valor`` separados por ``*``, por exemplo
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from collections.abc import Mapping
+from dataclasses import dataclass, field, fields
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
 from .nif import is_valid_nif
 
@@ -182,6 +184,100 @@ class InvoiceQR:
             raise QRCodeError("O último campo não pode acabar em espaço")
         _split(text)  # mesmas regras de tamanho e formato que a leitura
         return text
+
+    def to_dict(self) -> dict[str, Any]:
+        """Os campos num dicionário pronto para JSON (``json.dumps(fatura.to_dict())``).
+
+        Os valores vêm em texto com duas casas (``"12.30"``), a data em ISO
+        (``"2026-10-15"``) e o IVA numa lista, um dicionário por espaço fiscal. Junta
+        ``document_type_name`` e ``is_final_consumer``, para quem lê o JSON noutra
+        linguagem. ``InvoiceQR.from_dict(fatura.to_dict())`` devolve uma fatura igual.
+        """
+        data: dict[str, Any] = {}
+        for f in fields(self):
+            if f.name == "taxes":
+                data["taxes"] = [
+                    {name: _plain(getattr(tax, name)) for name in ("fiscal_space", *_TAX_FIELDS)}
+                    for tax in self.taxes
+                ]
+            elif f.name != "fields":
+                data[f.name] = _plain(getattr(self, f.name))
+        data["document_type_name"] = self.document_type_name
+        data["is_final_consumer"] = self.is_final_consumer
+        return data
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> InvoiceQR:
+        """O inverso de :meth:`to_dict` (os campos calculados, como
+        ``document_type_name``, são ignorados).
+
+        A fatura passa pelas mesmas regras de um QR (tamanhos, formato e campos
+        obrigatórios). Lança :class:`QRCodeError` se faltar um campo ou um valor for
+        inválido.
+        """
+        try:
+            invoice = cls(
+                issuer_nif=data["issuer_nif"],
+                buyer_nif=data["buyer_nif"],
+                buyer_country=data["buyer_country"],
+                document_type=data["document_type"],
+                document_status=data["document_status"],
+                document_date=date.fromisoformat(data["document_date"]),
+                document_id=data["document_id"],
+                atcud=data["atcud"],
+                taxes=tuple(
+                    TaxBreakdown(
+                        fiscal_space=tax["fiscal_space"],
+                        exempt_base=_decimal(tax.get("exempt_base")),
+                        reduced_base=_decimal(tax.get("reduced_base")),
+                        reduced_vat=_decimal(tax.get("reduced_vat")),
+                        intermediate_base=_decimal(tax.get("intermediate_base")),
+                        intermediate_vat=_decimal(tax.get("intermediate_vat")),
+                        normal_base=_decimal(tax.get("normal_base")),
+                        normal_vat=_decimal(tax.get("normal_vat")),
+                    )
+                    for tax in data["taxes"]
+                ),
+                total_taxes=_required_decimal(data["total_taxes"]),
+                total=_required_decimal(data["total"]),
+                hash_chars=data["hash_chars"],
+                certificate=data["certificate"],
+                non_taxable=_decimal(data.get("non_taxable")),
+                stamp_duty=_decimal(data.get("stamp_duty")),
+                withholding=_decimal(data.get("withholding")),
+                other_info=data.get("other_info"),
+            )
+        except KeyError as exc:
+            raise QRCodeError(f"Falta o campo {exc.args[0]!r} no dicionário") from exc
+        except (TypeError, ValueError) as exc:
+            raise QRCodeError(f"Valor inválido no dicionário: {exc}") from exc
+        return parse(invoice.to_text())
+
+
+def _plain(value: object) -> object:
+    if isinstance(value, Decimal):
+        return f"{value:.2f}"
+    if isinstance(value, date):
+        return value.isoformat()
+    return value
+
+
+def _required_decimal(value: object) -> Decimal:
+    amount = _decimal(value)
+    if amount is None:
+        raise TypeError("os totais (total_taxes e total) não podem ser null")
+    return amount
+
+
+def _decimal(value: object) -> Decimal | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):  # nunca float: os valores ficam exatos
+        raise TypeError(f'os valores vêm em texto, como "12.30", e não {value!r}')
+    try:
+        return Decimal(value)
+    except InvalidOperation:
+        raise ValueError(f"{value!r} não é um valor") from None
 
 
 def _split(text: str) -> dict[str, str]:

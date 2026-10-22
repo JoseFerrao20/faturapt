@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from decimal import Decimal
 
@@ -90,3 +91,78 @@ invoices = st.builds(
 @given(invoices)
 def test_round_trip(invoice: InvoiceQR) -> None:
     assert parse(invoice.to_text()) == invoice
+
+
+@given(invoices)
+def test_dict_round_trip(invoice: InvoiceQR) -> None:
+    # Também através do JSON, como faz quem usa o dicionário noutra linguagem.
+    data = json.loads(json.dumps(invoice.to_dict()))
+    assert InvoiceQR.from_dict(data) == invoice
+
+
+def test_to_dict() -> None:
+    assert parse(SIMPLE).to_dict() == {
+        "issuer_nif": "500000000",
+        "buyer_nif": "999999990",
+        "buyer_country": "PT",
+        "document_type": "FS",
+        "document_status": "N",
+        "document_date": "2026-10-15",
+        "document_id": "FS 01/1234",
+        "atcud": "JJ3XY2KD-1234",
+        "taxes": [
+            {
+                "fiscal_space": "PT",
+                "exempt_base": None,
+                "reduced_base": None,
+                "reduced_vat": None,
+                "intermediate_base": None,
+                "intermediate_vat": None,
+                "normal_base": "10.00",
+                "normal_vat": "2.30",
+            }
+        ],
+        "total_taxes": "2.30",
+        "total": "12.30",
+        "hash_chars": "Ab1z",
+        "certificate": "1234",
+        "non_taxable": None,
+        "stamp_duty": None,
+        "withholding": None,
+        "other_info": None,
+        "document_type_name": "Fatura simplificada",
+        "is_final_consumer": True,
+    }
+
+
+def test_from_dict_fills_the_raw_fields() -> None:
+    # Passa pelo texto do QR: fica como se tivesse sido lido, e o check funciona.
+    invoice = InvoiceQR.from_dict(parse(FULL).to_dict())
+    assert invoice.fields == parse(FULL).fields
+    assert check(invoice) == []
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"document_date": None}, "Valor inválido"),
+        ({"document_date": "31-12-2019"}, "Valor inválido"),
+        ({"total": 12.3}, 'os valores vêm em texto, como "12.30"'),
+        ({"total": "doze"}, "'doze' não é um valor"),
+        ({"taxes": [{"normal_base": "10.00"}]}, "Falta o campo 'fiscal_space'"),
+        ({"issuer_nif": None}, "Faltam campos obrigatórios: A"),
+        ({"hash_chars": "Ab1"}, "4 caracteres do hash"),
+        ({"total": None}, "não podem ser null"),
+    ],
+)
+def test_from_dict_rejects(changes: dict[str, object], message: str) -> None:
+    with pytest.raises(QRCodeError, match=message):
+        InvoiceQR.from_dict(parse(SIMPLE).to_dict() | changes)
+
+
+@pytest.mark.parametrize("key", ["issuer_nif", "document_date", "taxes", "total"])
+def test_from_dict_requires_the_fields(key: str) -> None:
+    data = parse(SIMPLE).to_dict()
+    del data[key]
+    with pytest.raises(QRCodeError, match=f"Falta o campo '{key}'"):
+        InvoiceQR.from_dict(data)
