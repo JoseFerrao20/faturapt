@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Experimentar no browser
+    url: https://joseferrao20.github.io/faturapt/
+    about: Antes de abrir uma issue, vê se a página de demonstração lê o teu QR.
+  - name: Vulnerabilidade de segurança
+    url: https://github.com/JoseFerrao20/faturapt/security/advisories/new
+    about: Comunica-a em privado, não numa issue pública.

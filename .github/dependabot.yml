@@ -1,0 +1,21 @@
+# Dependabot: um PR por semana e por ecossistema, com as atualizações agrupadas. As de
+# segurança chegam logo que saem. Cada PR passa pelo CI como os outros; o merge é à mão.
+version: 2
+updates:
+  # O uv.lock: dependências de desenvolvimento e dos extras (image e pdf). As versões mínimas
+  # do pyproject.toml não mudam: sobem à mão, quando o código precisar.
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

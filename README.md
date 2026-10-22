@@ -76,6 +76,10 @@ A página de demonstração está em `site/`: o `demo.py` é a ponte para o fatu
 
 O CI corre o mesmo em Python 3.10 a 3.14. Para publicar uma versão: atualizar `__version__`, passar as entradas de "Por publicar" do `CHANGELOG.md` para a versão nova, com a data, e criar uma tag `vX.Y.Z`. O workflow `release.yml` publica no PyPI por *trusted publishing* (sem tokens guardados no GitHub).
 
+## Contribuir
+
+Issues e pull requests são bem-vindos: ver o [CONTRIBUTING.md](CONTRIBUTING.md). O que mais ajuda é um QR de uma fatura real que o faturapt leia mal. Vulnerabilidades comunicam-se em privado ([SECURITY.md](SECURITY.md)).
+
 ## Licença
 
 MIT.

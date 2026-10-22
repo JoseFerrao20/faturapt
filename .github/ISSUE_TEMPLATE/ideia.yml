@@ -1,0 +1,16 @@
+name: Ideia
+description: Uma funcionalidade nova ou uma melhoria.
+labels: [ideia]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Para que serve
+      description: Que problema resolve, e como o resolves hoje sem ela.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como imaginas
+      description: Como seria a API ou o comportamento. Se for uma regra da AT, indica o ponto da especificação.
