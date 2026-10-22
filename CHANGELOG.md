@@ -4,6 +4,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+## [0.3.0] - 2026-10-22
+
 ### Adicionado
 
 - `InvoiceQR.to_dict()` e `InvoiceQR.from_dict()`: a fatura num dicionário pronto para JSON (valores em texto com duas casas, datas em ISO, IVA numa lista) e o caminho inverso, que passa pelas mesmas regras do `parse`. Testes de ida e volta com o Hypothesis, através do JSON.
@@ -32,6 +34,7 @@ Primeira versão.
 - Linha de comandos `faturapt`, a partir do texto ou de uma imagem (`-i`/`--imagem`).
 - Regras conferidas com as especificações técnicas da AT (versão 1.0, agosto de 2020), com os quatro exemplos do documento nos testes.
 
-[Por publicar]: https://github.com/JoseFerrao20/faturapt/compare/v0.2.0...HEAD
+[Por publicar]: https://github.com/JoseFerrao20/faturapt/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/JoseFerrao20/faturapt/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/JoseFerrao20/faturapt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/JoseFerrao20/faturapt/releases/tag/v0.1.0
