@@ -1,0 +1,45 @@
+name: Página de demonstração
+
+# Publica site/ no GitHub Pages com o wheel do faturapt da main, para a página correr
+# sempre o código atual (no browser, com o Pyodide). Em Settings → Pages, a origem tem de
+# ser "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build --wheel
+      - name: Juntar a página e o wheel
+        run: |
+          mkdir _site
+          cp site/index.html site/style.css site/app.js site/demo.py _site/
+          cp dist/faturapt-*.whl _site/faturapt.whl
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
