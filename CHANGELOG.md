@@ -4,6 +4,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+## [0.4.0] - 2026-10-23
+
 ### Adicionado
 
 - `check_vat`, com avisos sobre o IVA de cada taxa: confirma que o IVA é a base vezes a taxa em vigor na data da fatura (continente, Açores e Madeira, com as mudanças de 2021 nos Açores e de 2024 na Madeira), com folga para os arredondamentos. São avisos, separados do `check`, porque as taxas mudam com os orçamentos.
@@ -39,7 +41,8 @@ Primeira versão.
 - Linha de comandos `faturapt`, a partir do texto ou de uma imagem (`-i`/`--imagem`).
 - Regras conferidas com as especificações técnicas da AT (versão 1.0, agosto de 2020), com os quatro exemplos do documento nos testes.
 
-[Por publicar]: https://github.com/JoseFerrao20/faturapt/compare/v0.3.0...HEAD
+[Por publicar]: https://github.com/JoseFerrao20/faturapt/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/JoseFerrao20/faturapt/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/JoseFerrao20/faturapt/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/JoseFerrao20/faturapt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/JoseFerrao20/faturapt/releases/tag/v0.1.0
