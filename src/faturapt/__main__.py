@@ -10,6 +10,7 @@ import sys
 from .image import read_image
 from .pdf import read_pdf
 from .qr import QRCodeError, check, parse
+from .vat import check_vat
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -36,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
 
     data = invoice.to_dict()
     data["problems"] = check(invoice)
+    data["warnings"] = check_vat(invoice)  # só avisos: não mudam o código de saída
     print(json.dumps(data, ensure_ascii=False, indent=2))
     return 1 if data["problems"] else 0
 

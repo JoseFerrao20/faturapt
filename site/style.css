@@ -230,6 +230,14 @@ button.secondary {
   margin: 0;
 }
 
+.verdict ul + p {
+  margin-top: 8px;
+}
+
+.verdict p + p {
+  margin-top: 8px;
+}
+
 .verdict ul {
   margin: 8px 0 0;
   padding-left: 20px;

@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from decimal import Decimal
 
@@ -160,6 +161,20 @@ def test_cli_ok(capsys: pytest.CaptureFixture[str]) -> None:
     out = capsys.readouterr().out
     assert '"total": "12.30"' in out
     assert '"document_date": "2026-10-15"' in out
+
+
+def test_cli_vat_warnings_keep_exit_code_zero(capsys: pytest.CaptureFixture[str]) -> None:
+    wrong_rate = (
+        SIMPLE.replace("I8:2.30", "I8:1.30")
+        .replace("N:2.30", "N:1.30")
+        .replace("O:12.30", "O:11.30")
+    )
+    assert main([wrong_rate]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["problems"] == []
+    assert data["warnings"] == [
+        "IVA à taxa normal (PT, 23 %): a base 10.00 dá 2.30 de IVA, mas o QR tem 1.30"
+    ]
 
 
 def test_cli_problems_and_errors(capsys: pytest.CaptureFixture[str]) -> None:

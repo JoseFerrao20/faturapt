@@ -4,6 +4,11 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Adicionado
+
+- `check_vat`, com avisos sobre o IVA de cada taxa: confirma que o IVA é a base vezes a taxa em vigor na data da fatura (continente, Açores e Madeira, com as mudanças de 2021 nos Açores e de 2024 na Madeira), com folga para os arredondamentos. São avisos, separados do `check`, porque as taxas mudam com os orçamentos.
+- A linha de comandos e a página de demonstração mostram esses avisos (`warnings`), sem mudar o código de saída.
+
 ## [0.3.0] - 2026-10-22
 
 ### Adicionado

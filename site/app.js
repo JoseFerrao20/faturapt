@@ -247,7 +247,7 @@ function show(text, source) {
     return;
   }
   status.textContent = `Li ${source}.`;
-  showVerdict(data.problems);
+  showVerdict(data.problems, data.warnings ?? []);
   showDetails(data);
   $("result-title").focus({ preventScroll: true });
 }
@@ -261,11 +261,21 @@ function showError(message) {
   status.textContent = message;
 }
 
-function showVerdict(problems) {
+function showVerdict(problems, warnings) {
   const verdict = $("verdict");
+  // Os avisos do IVA não são erros: as taxas mudam, e a tabela do faturapt pode não ter a nova.
+  const vatNotes = warnings.length
+    ? [
+        el("p", "Atenção ao IVA (as taxas mudam; confirma na fatura):"),
+        el("ul", ...warnings.map((w) => el("li", w))),
+      ]
+    : [];
   if (problems.length === 0) {
-    verdict.className = "verdict ok";
-    verdict.replaceChildren(el("p", "Tudo certo: os NIFs, o ATCUD e as contas batem certo."));
+    verdict.className = warnings.length ? "verdict warn" : "verdict ok";
+    const summary = warnings.length
+      ? "Os NIFs, o ATCUD e as contas batem certo."
+      : "Tudo certo: os NIFs, o ATCUD e as contas batem certo.";
+    verdict.replaceChildren(el("p", summary), ...vatNotes);
     return;
   }
   verdict.className = "verdict warn";
@@ -273,6 +283,7 @@ function showVerdict(problems) {
   verdict.replaceChildren(
     el("p", `${title} (a fatura lê-se, mas há algo que não bate certo):`),
     el("ul", ...problems.map((p) => el("li", p))),
+    ...vatNotes,
   );
 }
 
