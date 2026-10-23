@@ -22,7 +22,8 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy
 
 - O `parse` só recusa o que está mal formado; problemas de conteúdo (NIFs, contas, ATCUD) vão para o `check`, que devolve uma lista e nunca lança.
 - Valores em `Decimal`, nunca `float`.
-- `parse(fatura.to_text()) == fatura`: um campo novo entra nos dois (o teste com o Hypothesis está em `tests/test_build.py`).
+- `parse(fatura.to_text()) == fatura` e `InvoiceQR.from_dict(fatura.to_dict()) == fatura`, também através do JSON: um campo novo entra nos quatro (os testes com o Hypothesis estão em `tests/test_build.py`). O `to_dict` é o formato do JSON da linha de comandos e da página de demonstração.
+- O `check_vat` (`vat.py`) só dá avisos e nunca entra no `check`, porque as taxas de IVA mudam com os orçamentos. Uma taxa nova entra na tabela `_RATES` com a data e o diploma no comentário, e com um teste no dia da mudança.
 - As dependências de imagem e PDF são opcionais e importam-se só dentro das funções: `import faturapt` tem de funcionar sem elas.
 - Nos testes de imagem, os QR são gerados com o `segno`, não com o zxing.
 - Mensagens de erro, README e CHANGELOG em português de Portugal; nomes no código e mensagens de commit em inglês.

@@ -30,7 +30,10 @@ classifiers = [
 ]
 
 [project.urls]
+Homepage = "https://github.com/JoseFerrao20/faturapt"
+Demo = "https://joseferrao20.github.io/faturapt/"
 Repository = "https://github.com/JoseFerrao20/faturapt"
+Issues = "https://github.com/JoseFerrao20/faturapt/issues"
 Changelog = "https://github.com/JoseFerrao20/faturapt/blob/main/CHANGELOG.md"
 
 [project.scripts]

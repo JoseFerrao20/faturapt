@@ -7,6 +7,8 @@
 
 Lê e valida o **código QR das faturas portuguesas** (o que a AT exige desde 2022, Portaria n.º 195/2020) e **NIFs**. Python puro, sem dependências obrigatórias, com tipos.
 
+Para quê: tirar a data, o total, o IVA e os NIFs de uma fatura sem OCR nem adivinhas, numa app de despesas ou de garantias, ao conferir as faturas recebidas antes de as lançar na contabilidade, ou para testar o QR que um programa de faturação gera (com o `to_text`).
+
 **[Experimentar no browser](https://joseferrao20.github.io/faturapt/)**: cola o texto de um QR, aponta a câmara do telemóvel à fatura ou escolhe uma fotografia. A página corre o próprio faturapt com o [Pyodide](https://pyodide.org) e nada sai do teu computador.
 
 ```python
@@ -61,6 +63,22 @@ pip install 'faturapt[pdf]'      # fotografias e PDFs (também o pypdfium2)
 
 As regras seguem as [especificações técnicas da AT](https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Novas_regras_faturacao/Documents/Especificacoes_Tecnicas_Codigo_QR.pdf) (versão 1.0, agosto de 2020), e os quatro exemplos do documento fazem parte dos testes. O `parse` recusa o que não se consegue ler (campos desconhecidos, repetidos ou acima do tamanho máximo, obrigatórios em falta); o `check` aponta o resto (campos fora de ordem, valores sem duas casas decimais, NIFs e contas).
 
+### Taxas de IVA do `check_vat`
+
+| Espaço fiscal | Reduzida | Intermédia | Normal |
+|---|---|---|---|
+| Continente (`PT`) | 6 % | 13 % | 23 % |
+| Açores (`PT-AC`) | 4 % | 9 % | 18 %; 16 % desde 1 de julho de 2021 |
+| Madeira (`PT-MA`) | 5 %; 4 % desde 1 de outubro de 2024 | 12 % | 22 % |
+
+A tabela começa em 2019 e está em `src/faturapt/vat.py`, com a fonte de cada mudança. Uma taxa que mude num orçamento entra lá numa versão nova; até lá, o `check_vat` pode dar avisos a mais, mas nunca erros.
+
+## O que não faz
+
+- **Não confirma que a fatura é verdadeira.** O faturapt confirma que o QR está bem formado e é coerente (NIFs, ATCUD, contas), mas não consulta o e-fatura nem nenhum serviço da AT, e não consegue validar o hash (Q) nem o número do certificado (R): quem tem a chave é o programa de faturação. Um QR inventado com contas certas passa.
+- **Só conhece o QR português** da Portaria n.º 195/2020. Faturas de outros países, ou códigos que só têm um link para um site, dão `QRCodeError`.
+- **Não lê o resto da fatura.** O nome da loja, os artigos e a morada não estão no QR. Para isso é preciso ler o texto da fatura (com OCR, se for uma fotografia).
+- **Não substitui a contabilidade.** Os avisos do `check_vat` dependem de uma tabela de taxas que pode ficar para trás, e uma fatura com isenções ou regimes especiais pode ter IVA diferente do esperado sem estar errada.
 
 ## Campos do QR
 
@@ -91,4 +109,4 @@ Issues e pull requests são bem-vindos: ver o [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Licença
 
-MIT.
+[MIT](LICENSE).
