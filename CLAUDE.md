@@ -19,6 +19,7 @@ uv build
 - API pública só pelo que está em `faturapt.__all__`; mudar algo que já lá está é uma versão nova *major* (ou *minor* antes da 1.0) e entra no `CHANGELOG.md`.
 - `parse` só recusa o que está mal formado; problemas de conteúdo (NIFs, contas) vão para `check`, que devolve uma lista e nunca lança.
 - Valores em `Decimal`, nunca `float`.
+- `check_vat` (`vat.py`) só dá avisos, nunca entra no `check`: as taxas de IVA mudam com os orçamentos. Uma taxa nova entra na tabela `_RATES` com a data e a fonte (diploma) no comentário, e com um teste na data da mudança.
 - Nos testes de imagem, os QR são gerados com o `segno` e não com o escritor do zxing, para o leitor não ser testado contra si próprio.
 - `to_text` e `parse` são inversos: `parse(fatura.to_text()) == fatura`, e o mesmo para `to_dict` e `from_dict`, através do JSON (testes com o Hypothesis em `tests/test_build.py`). Um campo novo entra nos quatro. O `to_dict` é o formato do JSON da linha de comandos e da página de demonstração.
 - Cada alteração num PR a partir de um ramo, com o CI verde.

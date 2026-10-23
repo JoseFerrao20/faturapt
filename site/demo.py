@@ -24,5 +24,6 @@ def analyse(text: str) -> str:
     except faturapt.InvalidNIF:
         data["issuer_type"] = None
     data["problems"] = faturapt.check(invoice)
+    data["warnings"] = faturapt.check_vat(invoice)
     data["version"] = faturapt.__version__
     return json.dumps(data, ensure_ascii=False)

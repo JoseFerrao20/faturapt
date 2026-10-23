@@ -4,6 +4,7 @@ from .image import read_image
 from .nif import InvalidNIF, NifType, is_valid_nif, nif_type, normalize_nif
 from .pdf import read_pdf
 from .qr import DOCUMENT_TYPES, InvoiceQR, QRCodeError, TaxBreakdown, check, parse
+from .vat import check_vat
 
 __all__ = [
     "DOCUMENT_TYPES",
@@ -13,6 +14,7 @@ __all__ = [
     "QRCodeError",
     "TaxBreakdown",
     "check",
+    "check_vat",
     "is_valid_nif",
     "nif_type",
     "normalize_nif",

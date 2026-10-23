@@ -54,3 +54,15 @@ def test_invalid_issuer_nif_has_no_type() -> None:
 
 def test_not_an_invoice() -> None:
     assert analyse("https://exemplo.pt") == {"error": "Campo desconhecido: https"}
+
+
+def test_vat_warnings() -> None:
+    data = analyse(
+        SIMPLE.replace("I8:2.30", "I8:1.30")
+        .replace("N:2.30", "N:1.30")
+        .replace("O:12.30", "O:11.30")
+    )
+    assert data["problems"] == []
+    assert data["warnings"] == [
+        "IVA à taxa normal (PT, 23 %): a base 10.00 dá 2.30 de IVA, mas o QR tem 1.30"
+    ]
