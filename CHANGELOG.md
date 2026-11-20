@@ -4,6 +4,13 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Corrigido
+
+- O `check` podia lançar `ValueError` com um NIF com algarismos de outros alfabetos (`99999999²`, por exemplo), e o `is_valid_nif` e o `nif_type` também. Agora o NIF é inválido e aparece na lista de problemas.
+- O `parse` deixa de aceitar algarismos de outros alfabetos (`O:١٢.٣٠`) nos valores, na data, no documento (G) e no ATCUD, e um `\n` no fim de um valor. A data (F) tem de ter os oito algarismos de AAAAMMDD: `F:2026115` deixa de passar.
+- O `to_text` só devolve texto que o `parse` lê como a mesma fatura, como promete. Antes arredondava sem avisar os valores com mais de duas casas decimais e escrevia textos que o `parse` recusa (um `Q` sem 4 caracteres, um `Decimal("NaN")` ou um espaço fiscal `0` com valores). Agora lança `QRCodeError`.
+- O `read_image` lança `QRCodeError` com uma imagem grande demais (o limite do Pillow contra as *decompression bombs*), em vez do `DecompressionBombError` do Pillow, e a linha de comandos mostra o erro em vez de rebentar.
+
 ## [0.4.0] - 2026-10-23
 
 ### Adicionado
