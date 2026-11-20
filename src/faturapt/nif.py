@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 __all__ = ["InvalidNIF", "NifType", "is_valid_nif", "nif_type", "normalize_nif"]
 
@@ -11,8 +11,8 @@ class InvalidNIF(ValueError):
     """O valor não é um NIF português válido."""
 
 
-class NifType(str, Enum):
-    """Tipo de contribuinte, pelo prefixo do NIF."""
+class NifType(StrEnum):
+    """Tipo de contribuinte, pelo prefixo do NIF (``str()`` dá o nome: ``"pessoa singular"``)."""
 
     INDIVIDUAL = "pessoa singular"
     NON_RESIDENT_INDIVIDUAL = "pessoa singular não residente"

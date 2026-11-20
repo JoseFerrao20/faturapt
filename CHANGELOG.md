@@ -4,6 +4,18 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Adicionado
+
+- Suporte para o Python 3.15: entra nos classificadores do pacote e no CI.
+
+### Alterado
+
+- O `NifType` passa a ser um `StrEnum`: `str(tipo)` e `f"{tipo}"` dão o nome (`"pessoa coletiva"`) em todas as versões do Python, em vez de `NifType.COMPANY`. Comparar com o texto (`tipo == "pessoa coletiva"`) continua a funcionar.
+
+### Removido
+
+- Suporte para o Python 3.10, que chegou ao fim de vida em outubro de 2026 (as dependências dos extras, como o Pillow, também já o deixaram). O faturapt passa a pedir o Python 3.11 ou mais recente; quem ainda usa o 3.10 fica no faturapt 0.4.
+
 ## [0.4.0] - 2026-10-23
 
 ### Adicionado

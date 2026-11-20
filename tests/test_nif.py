@@ -23,6 +23,11 @@ def test_two_digit_prefix_wins() -> None:
     assert nif_type("450000001") is NifType.NON_RESIDENT_INDIVIDUAL
 
 
+def test_type_as_text() -> None:
+    kind = nif_type("500000000")
+    assert str(kind) == f"{kind}" == "pessoa coletiva"
+
+
 @pytest.mark.parametrize(
     ("nif", "message"),
     [
