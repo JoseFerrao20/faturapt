@@ -88,7 +88,11 @@ def test_unknown_document_type_is_kept() -> None:
         (SIMPLE + "*Z:1", "Campo desconhecido: Z"),
         (SIMPLE.replace("*Q:Ab1z", "*Qx"), "CHAVE:valor"),
         (SIMPLE.replace("F:20261015", "F:20261332"), "Data inválida"),
+        (SIMPLE.replace("F:20261015", "F:2026115"), "Data inválida"),  # tem de ser AAAAMMDD
+        (SIMPLE.replace("F:20261015", "F:\uff12\uff10\uff12\uff161015"), "Data inválida"),
         (SIMPLE.replace("O:12.30", "O:12,30"), "campo O"),
+        (SIMPLE.replace("O:12.30", "O:١٢.٣٠"), "campo O"),  # só algarismos 0 a 9
+        (SIMPLE.replace("N:2.30", "N:2.30\n"), "campo N"),
         (SIMPLE.replace("Q:Ab1z", "Q:Ab1"), "4 caracteres"),
         (SIMPLE.replace("Q:Ab1z", "Q:Ab1z9"), "tamanho máximo \\(4"),
         (SIMPLE.replace("A:500000000", "A:PT500000000"), "campo A passa"),
@@ -111,6 +115,12 @@ def test_check_finds_problems() -> None:
     assert "NIF do emitente" in problems[0]
     assert "Total de impostos (N)" in problems[1]
     assert "Total (O)" in problems[2]
+
+
+def test_check_does_not_raise_on_unicode_digits() -> None:
+    # "²" passa no str.isdigit, mas não é um algarismo para o int().
+    problems = check(parse(SIMPLE.replace("B:999999990", "B:99999999²")))
+    assert problems == ["NIF do adquirente inválido: 99999999²"]
 
 
 def test_check_invalid_buyer_nif() -> None:
@@ -137,6 +147,16 @@ def test_check_order_and_decimals() -> None:
         ("H:JJ3XY2KD-1234", "H:JJ3-1234", "ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': JJ3-1234"),
         ("G:FS 01/1234", "G:FT 01/1234", "O documento (G) é do tipo FT, mas o tipo (D) é FS"),
         ("G:FS 01/1234", "G:FS-1234", "Documento (G) sem o formato 'TIPO SÉRIE/NÚMERO': FS-1234"),
+        (
+            "G:FS 01/1234",
+            "G:FS 01/1234\n",
+            "Documento (G) sem o formato 'TIPO SÉRIE/NÚMERO': FS 01/1234\n",
+        ),
+        (
+            "H:JJ3XY2KD-1234",
+            "H:JJ3XY2KD-١٢٣٤",
+            "ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': JJ3XY2KD-١٢٣٤",
+        ),
     ],
 )
 def test_check_atcud(old: str, new: str, problem: str) -> None:

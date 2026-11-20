@@ -72,7 +72,7 @@ def _check_digit(first_eight: str) -> int:
 def nif_type(value: str | int) -> NifType:
     """Devolve o tipo de contribuinte, ou lança :class:`InvalidNIF`."""
     nif = normalize_nif(value)
-    if len(nif) != 9 or not nif.isdigit():
+    if len(nif) != 9 or not (nif.isascii() and nif.isdigit()):  # isdigit aceita "²"
         raise InvalidNIF(f"O NIF tem de ter 9 dígitos: {value!r}")
     kind = next((t for prefix, t in _PREFIXES if nif.startswith(prefix)), None)
     if kind is None:

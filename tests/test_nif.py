@@ -29,6 +29,8 @@ def test_two_digit_prefix_wins() -> None:
         ("123456780", "dígito de controlo"),
         ("12345678", "9 dígitos"),
         ("12345678A", "9 dígitos"),
+        ("12345678²", "9 dígitos"),  # isdigit aceita, int não
+        ("\uff1500000000", "9 dígitos"),  # 5 de largura total
         ("400000000", "prefixo"),
         ("", "9 dígitos"),
     ],

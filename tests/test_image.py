@@ -32,6 +32,19 @@ def photo(*codes: Image.Image) -> Image.Image:
     return Image.open(io.BytesIO(buffer.getvalue()))
 
 
+def test_image_too_large(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Acima do dobro do limite, o Pillow lança DecompressionBombError (que não é OSError).
+    path = tmp_path / "grande.png"
+    qr_image(SIMPLE).save(path)
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 1000)
+    with pytest.raises(QRCodeError, match="grande demais"):
+        read_image(path)
+    assert main(["-i", str(path)]) == 2
+    assert "grande demais" in capsys.readouterr().err
+
+
 def test_bytes() -> None:
     buffer = io.BytesIO()
     qr_image(SIMPLE).save(buffer, format="PNG")

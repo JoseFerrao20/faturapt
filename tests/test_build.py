@@ -43,6 +43,12 @@ def test_to_text_from_scratch() -> None:
         ({"document_id": "x" * 61}, "campo G passa"),
         ({"taxes": (TaxBreakdown("PT"),) * 4}, "três espaços fiscais"),
         ({"other_info": "pago "}, "acabar em espaço"),
+        ({"hash_chars": "abc"}, "4 caracteres"),
+        ({"total": Decimal("NaN")}, "campo O"),
+        ({"taxes": (TaxBreakdown("0", normal_base=Decimal(1)),)}, "I1 é 0"),
+        # O parse aceitaria o texto, mas leria outra fatura:
+        ({"total": Decimal("12.305")}, "muda ao passar pelo texto do QR \\(total\\)"),
+        ({"taxes": (TaxBreakdown("0"),)}, "muda ao passar pelo texto do QR \\(taxes\\)"),
     ],
 )
 def test_to_text_rejects(changes: dict[str, object], message: str) -> None:
