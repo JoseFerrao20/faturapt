@@ -113,14 +113,23 @@ async function readPhoto(event) {
   status.textContent = "A procurar o código QR na fotografia…";
   try {
     const { readBarcodes } = await import(ZXING_URL);
-    const codes = await readBarcodes(file, { formats: ["QRCode"], tryHarder: true });
-    const texts = codes.filter((code) => code.isValid).map((code) => code.text);
+    // Pode haver outros QR na fotografia (um site, uma promoção): fica o primeiro da fatura.
+    const isInvoice = (t) => !JSON.parse(analyse(t)).error;
+    const texts = [];
+    // O binário por omissão não vê o QR em algumas fotografias de talões (papel térmico,
+    // pouco contraste), que o GlobalHistogram lê. Só é tentado se não houver fatura.
+    for (const binarizer of ["LocalAverage", "GlobalHistogram"]) {
+      const codes = await readBarcodes(file, { formats: ["QRCode"], tryHarder: true, binarizer });
+      for (const code of codes) {
+        if (code.isValid && !texts.includes(code.text)) texts.push(code.text);
+      }
+      if (texts.some(isInvoice)) break;
+    }
     if (texts.length === 0) {
       showError("Não encontrei nenhum código QR na fotografia. Tenta com o QR maior e nítido.");
       return;
     }
-    // Pode haver outros QR na fotografia (um site, uma promoção): fica o primeiro da fatura.
-    const text = texts.find((t) => !JSON.parse(analyse(t)).error) ?? texts[0];
+    const text = texts.find(isInvoice) ?? texts[0];
     $("qr-text").value = text;
     show(text, "a fotografia");
   } catch (error) {
