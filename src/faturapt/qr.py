@@ -67,8 +67,9 @@ _ORDER = {key: i for i, key in enumerate(_MAX_LENGTH)}
 _AMOUNT = re.compile(r"^-?\d+(\.\d{1,2})?$")
 # ATCUD: código de validação da série (8 ou mais caracteres), hífen e número do documento.
 _ATCUD = re.compile(r"^[A-Z0-9]{8,}-(\d+)$")
-# Identificação do documento no SAF-T(PT): tipo, espaço, série, barra e número.
-_DOCUMENT_ID = re.compile(r"^(\S+) \S+/(\d+)$")
+# Identificação do documento no SAF-T(PT): tipo, espaço, série, barra e número. O tipo
+# é o código interno do programa de faturação e não tem de ser o D (FT, FS, ...).
+_DOCUMENT_ID = re.compile(r"^\S+ \S+/(\d+)$")
 _TAX_FIELDS = (
     "exempt_base",
     "reduced_base",
@@ -420,18 +421,11 @@ def _check_atcud(invoice: InvoiceQR) -> list[str]:
     document = _DOCUMENT_ID.match(invoice.document_id)
     if document is None:
         return [f"Documento (G) sem o formato 'TIPO SÉRIE/NÚMERO': {invoice.document_id}"]
-    problems = []
-    if document[1] != invoice.document_type:
-        problems.append(
-            f"O documento (G) é do tipo {document[1]}, mas o tipo (D) é {invoice.document_type}"
-        )
     if invoice.atcud == "0":  # sem ATCUD, como era permitido antes de ser obrigatório
-        return problems
+        return []
     atcud = _ATCUD.match(invoice.atcud)
     if atcud is None:
-        problems.append(f"ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': {invoice.atcud}")
-    elif int(atcud[1]) != int(document[2]):
-        problems.append(
-            f"O ATCUD (H) acaba em {atcud[1]}, mas o documento (G) é o n.º {document[2]}"
-        )
-    return problems
+        return [f"ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': {invoice.atcud}"]
+    if int(atcud[1]) != int(document[1]):
+        return [f"O ATCUD (H) acaba em {atcud[1]}, mas o documento (G) é o n.º {document[1]}"]
+    return []

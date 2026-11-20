@@ -4,6 +4,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Corrigido
+
+- O `check` deixa de exigir que o documento (G) comece pelo tipo (D): o G leva o `InvoiceNo` do SAF-T (PT), cujo código do tipo de documento é interno do programa de faturação (por exemplo `D:FT` com `G:1 2026/3`). Continua a confirmar o formato `TIPO SÉRIE/NÚMERO` e que o ATCUD acaba no número do documento (#19).
+
 ## [0.4.0] - 2026-10-23
 
 ### Adicionado
