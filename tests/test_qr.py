@@ -135,12 +135,17 @@ def test_check_order_and_decimals() -> None:
             "O ATCUD (H) acaba em 1235, mas o documento (G) é o n.º 1234",
         ),
         ("H:JJ3XY2KD-1234", "H:JJ3-1234", "ATCUD (H) sem o formato 'CÓDIGO-NÚMERO': JJ3-1234"),
-        ("G:FS 01/1234", "G:FT 01/1234", "O documento (G) é do tipo FT, mas o tipo (D) é FS"),
         ("G:FS 01/1234", "G:FS-1234", "Documento (G) sem o formato 'TIPO SÉRIE/NÚMERO': FS-1234"),
     ],
 )
 def test_check_atcud(old: str, new: str, problem: str) -> None:
     assert check(parse(SIMPLE.replace(old, new))) == [problem]
+
+
+@pytest.mark.parametrize("document_id", ["G:FT 01/1234", "G:1 01/1234"])
+def test_document_code_may_differ_from_type(document_id: str) -> None:
+    # G leva o código interno do programa (InvoiceNo do SAF-T), que não tem de ser o D
+    assert check(parse(SIMPLE.replace("G:FS 01/1234", document_id))) == []
 
 
 def test_atcud_zero_is_accepted() -> None:
