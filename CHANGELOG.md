@@ -4,6 +4,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Alterado
+
+- `read_image` lê mais fotografias de talões: quando não encontra o QR da fatura com o binário por omissão do zxing (`LocalAverage`), tenta de novo com o `GlobalHistogram`, que vê o QR em papel térmico com pouco contraste. As imagens que já se liam não mudam, e a segunda leitura só acontece quando a primeira falha. O mesmo na página de demonstração, para as fotografias.
+
 ## [0.4.0] - 2026-10-23
 
 ### Adicionado
