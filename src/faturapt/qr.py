@@ -335,11 +335,14 @@ def parse(text: str) -> InvoiceQR:
 
     Lança :class:`QRCodeError` se o texto estiver mal formado (campos desconhecidos,
     repetidos ou acima do tamanho máximo) ou faltarem campos obrigatórios. Aceita
-    valores com menos de duas casas decimais e campos fora de ordem, e não confirma
-    NIFs nem contas: isso fica para :func:`check`.
+    valores com menos de duas casas decimais, campos fora de ordem e o espaço fiscal
+    em J1 ou K1 sem I1, como fazem alguns programas, e não confirma NIFs nem contas:
+    isso fica para :func:`check`.
     """
     fields = _split(text)
     missing = [k for k in _REQUIRED if k not in fields]
+    if "I1" in missing and _misplaced_space(fields):  # o check aponta-o
+        missing.remove("I1")
     if missing:
         raise QRCodeError(f"Faltam campos obrigatórios: {', '.join(missing)}")
 
@@ -379,7 +382,8 @@ def parse(text: str) -> InvoiceQR:
 def check(invoice: InvoiceQR) -> list[str]:
     """Problemas de conteúdo numa fatura já lida; lista vazia se estiver tudo certo.
 
-    Confirma a ordem dos campos, as duas casas decimais dos valores, os NIFs, o ATCUD
+    Confirma a ordem dos campos, o I1 (que tem de vir, mesmo com o espaço fiscal só em
+    J ou K), as duas casas decimais dos valores, os NIFs, o ATCUD
     (o número no fim tem de ser o do documento, em G) e as contas: o total de
     impostos (N) é o IVA mais o selo, e o total (O) é a soma das bases, do não
     sujeito (L) e dos impostos (N).
@@ -388,6 +392,8 @@ def check(invoice: InvoiceQR) -> list[str]:
     keys = list(invoice.fields)
     if keys != sorted(keys, key=_ORDER.__getitem__):
         problems.append("Os campos não estão pela ordem da especificação")
+    if (space := _misplaced_space(invoice.fields)) is not None:
+        problems.append(f"O espaço fiscal está em {space}, mas a especificação exige I1")
     problems += [
         f"O campo {key} devia ter duas casas decimais: {value}"
         for key, value in invoice.fields.items()
@@ -414,6 +420,15 @@ def check(invoice: InvoiceQR) -> list[str]:
             f"Total (O) é {invoice.total}, mas bases + não sujeito + impostos dá {expected_total}"
         )
     return problems
+
+
+def _misplaced_space(fields: Mapping[str, str]) -> str | None:
+    """O J1 ou K1 de um QR sem I1, que a especificação exige (ponto 4 e exemplos 6 e 7
+    da versão 1.1: um documento só dos Açores ou da Madeira usa ``I1:PT-AC`` ou
+    ``I1:PT-MA``). Alguns programas certificados escrevem-no assim nos talões."""
+    if "I1" in fields:
+        return None
+    return next((k for k in ("J1", "K1") if k in fields), None)
 
 
 def _check_atcud(invoice: InvoiceQR) -> list[str]:

@@ -4,6 +4,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-PT/1.1.0/) e 
 
 ## [Por publicar]
 
+### Alterado
+
+- O `parse` aceita um QR sem I1 quando o espaço fiscal vem em J1 ou K1, como nos talões de alguns programas certificados da Madeira e dos Açores, e lê esse bloco como se fosse o I. O `check` aponta-o («O espaço fiscal está em J1, mas a especificação exige I1»). Continua a recusar um QR sem nenhum espaço fiscal, e campos J2 a J8 (ou K2 a K8) sem J1 (ou K1).
+
 ## [0.4.0] - 2026-10-23
 
 ### Adicionado

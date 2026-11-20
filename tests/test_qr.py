@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from faturapt import QRCodeError, check, parse
+from faturapt import QRCodeError, check, check_vat, parse
 from faturapt.__main__ import main
 
 # Os quatro exemplos das especificações técnicas da AT (versão 1.0, ponto 5).
@@ -94,6 +94,7 @@ def test_unknown_document_type_is_kept() -> None:
         (SIMPLE.replace("A:500000000", "A:PT500000000"), "campo A passa"),
         (SIMPLE + "*S:" + "x" * 66, "campo S passa"),
         (SIMPLE.replace("*I1:PT", ""), "Faltam campos obrigatórios: I1"),
+        (SIMPLE.replace("*I1:PT*I7:10.00*I8:2.30", "*J7:10.00*J8:2.30"), "obrigatórios: I1"),
         (SIMPLE.replace("I1:PT", "I1:0"), "I1 é 0"),
         (SIMPLE + "*J7:1.00", "sem o espaço fiscal J1"),
         ("", "CHAVE:valor"),
@@ -102,6 +103,32 @@ def test_unknown_document_type_is_kept() -> None:
 def test_malformed(text: str, message: str) -> None:
     with pytest.raises(QRCodeError, match=message):
         parse(text)
+
+
+# Talões de programas certificados com o único espaço fiscal em J ou K, sem I1 (#24).
+@pytest.mark.parametrize(
+    ("taxes", "space", "key"),
+    [
+        ("J1:PT*J7:10.00*J8:2.30*N:2.30*O:12.30", "PT", "J1"),
+        ("K1:PT-MA*K7:10.00*K8:2.20*N:2.20*O:12.20", "PT-MA", "K1"),
+        ("J1:PT-AC*J7:10.00*J8:1.60*N:1.60*O:11.60", "PT-AC", "J1"),
+    ],
+)
+def test_fiscal_space_without_i1(taxes: str, space: str, key: str) -> None:
+    text = (
+        "A:500000000*B:999999990*C:PT*D:FS*E:N*F:20261105*G:FS 7/100*H:ABCD1234-100*"
+        + taxes
+        + "*Q:abcd*R:1522"
+    )
+    inv = parse(text)
+    assert [t.fiscal_space for t in inv.taxes] == [space]
+    assert inv.taxes[0].normal_base == Decimal("10.00")
+    assert check(inv) == [f"O espaço fiscal está em {key}, mas a especificação exige I1"]
+    assert check_vat(inv) == []
+    fixed = parse(inv.to_text())  # escreve-o no I1
+    assert fixed == inv
+    assert fixed.fields["I1"] == space
+    assert check(fixed) == []
 
 
 def test_check_finds_problems() -> None:
