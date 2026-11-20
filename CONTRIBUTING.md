@@ -30,6 +30,6 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy
 
 ## Pull requests
 
-- Um PR por mudança, a partir de um ramo, com o CI verde (Python 3.10 a 3.14).
+- Um PR por mudança, a partir de um ramo, com o CI verde (Python 3.11 a 3.15).
 - Uma mudança visível para quem usa a biblioteca entra no `CHANGELOG.md`, em "Por publicar".
 - A página de demonstração (`site/`) testa-se com `tests/test_site.py`; uma mudança no `app.js` deve ser vista no browser, nos temas claro e escuro.

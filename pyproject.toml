@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "José Ferrão" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = []
 keywords = ["portugal", "fatura", "invoice", "qr code", "nif", "atcud", "autoridade tributária"]
 classifiers = [
@@ -20,11 +20,11 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Topic :: Office/Business :: Financial :: Accounting",
   "Typing :: Typed",
 ]
@@ -66,7 +66,7 @@ path = "src/faturapt/__init__.py"
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
